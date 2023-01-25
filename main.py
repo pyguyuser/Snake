@@ -7,7 +7,9 @@ class Snake:
         self.Y = y
         self.display = pygame.display.set_mode((self.X,self.Y))
 
+
     def update(self):
+
         pass
 
 snake = Snake((0,0,255),700,700)
