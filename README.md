@@ -1,4 +1,1 @@
 # Snake
-### cRINGe
-
-
