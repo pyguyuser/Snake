@@ -1,1 +1,1 @@
-# Snake
+# Snake or just legendary game
