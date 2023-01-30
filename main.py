@@ -1,21 +1,35 @@
 import pygame
 
-class Snake:
+X,Y = (700,700)
+DISPLAY = pygame.display.set_mode((X,Y))
 
-    def __init__(self, color, x, y, size, speed):
+SNAKE_COLOR =  (0, 0, 200)
+SNAKE_SIZE = 50
+SNAKE_SPEED = 10
+
+class Snake_Head:
+
+    def __init__(self, color, size, speed,display,x,y,index):
         self.SIZE = size
         self.COLOR = color
         self.SPEED = speed
         self.X = x
         self.Y = y
-        self.DISPLAY = pygame.display.set_mode((self.X, self.Y))
+        self.DISPLAY = display
+        self.index = index
 
     cord_x,cord_y = (100, 350)
     list_value = [False, False, False, False]
+    list_value_old = None
 
-    def set_value(self, number):
-        for num in range(0, len(self.list_value) - 1): self.list_value[num] = False
+    def set_value(self,number):
+        self.list_value_old = [i for i in self.list_value]
+
+        for num in range(len(self.list_value)):
+            self.list_value[num] = False
         self.list_value[number] = True
+
+        print(self.list_value_old)
 
     def update(self):
         snake_surface = pygame.Surface((self.SIZE, self.SIZE))
@@ -30,12 +44,22 @@ class Snake:
         elif self.list_value[3]:
             self.cord_x += self.SPEED
 
-        self.DISPLAY.fill('black')
+        # if self.cord_x+(self.SIZE//2) > self.X:
+        #     self.cord_x = self.SIZE//2
+        # if self.cord_x+(self.SIZE//2) < self.X:
+        #     self.cord_x = self.SIZE//2
+        # if self.cord_x+(self.SIZE//2) > self.X:
+        #     self.cord_x = self.SIZE//2
+        # if self.cord_x+(self.SIZE//2) > self.X:
+        #     self.cord_x = self.SIZE//2
 
         snake_surface.fill('green')
         self.DISPLAY.blit(snake_surface, snake_cords)
 
-snake = Snake((0, 0, 200), 700, 700, 50, 20)
+
+
+
+snake = Snake_Head(SNAKE_COLOR,SNAKE_SIZE,SNAKE_SPEED,DISPLAY,X,Y,0)
 time = pygame.time.Clock()
 run = True
 while run:
@@ -52,6 +76,7 @@ while run:
             elif event.key == pygame.K_RIGHT:
                 snake.set_value(3)
 
+    DISPLAY.fill('black')
     snake.update()
 
     time.tick(60)
