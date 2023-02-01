@@ -5,7 +5,60 @@ DISPLAY = pygame.display.set_mode((X,Y))
 
 SNAKE_COLOR =  (0, 0, 200)
 SNAKE_SIZE = 25
-SNAKE_SPEED = 1
+SNAKE_SPEED = 10
+
+THRASHOLD = 0.01
+
+
+class Segment:
+    def __init__(self, color, size, speed,display,x,y,index,direction):
+        self.SIZE = size
+        self.COLOR = color
+        self.SPEED = speed
+        self.x = x
+        self.y = y
+        self.DISPLAY = display
+        self.index = index
+        self.direction1 = direction
+
+        self.surf = pygame.Surface((self.SIZE, self.SIZE))
+        self.surf.fill(self.COLOR)
+
+    direction0 = [None,None,None,None]
+    checkpoints = []
+
+
+    # def create(self):
+    #     seg = pygame.Surface((self.SIZE, self.SIZE))
+    #     seg.fill('blue')
+    #     self.tail.append(seg)
+
+    def update(self):
+        if len(self.checkpoints) < 1:
+            return
+        x,y,new_direction = self.checkpoints[-1]
+        r = ((self.y-y)**2+(self.x-x)**2)**0.5
+        if r<= THRASHOLD:
+            print(f'r=={r}')
+            self.direction0 = [i for i in self.direction1]
+            self.direction1 = new_direction
+            self.checkpoints.pop()
+
+
+
+
+    def render(self):
+        self.update()
+        coord = self.surf.get_rect(center=(self.x, self.y))
+        # snake_surface = pygame.Surface((self.SIZE, self.SIZE))
+        # snake_cords = snake_surface.get_rect(center=(self.x, self.y))
+
+        if self.direction1[0]:self.x -= self.SPEED
+        elif self.direction1[1]:self.y -= self.SPEED
+        elif self.direction1[2]:self.y += self.SPEED
+        elif self.direction1[3]:self.x += self.SPEED
+
+        self.DISPLAY.blit(self.surf, coord)
 
 class Snake_Head:
 
@@ -31,12 +84,14 @@ class Snake_Head:
     list = []
 
     def set_value(self,number):
+        self.list_value = [i==number for i in range(4)]
         self.list_value_old = [i for i in self.list_value]
+        self.add_checkpoint()
 
-        for num in range(len(self.list_value)):
-            if self.list_value[num]:self.list.append((self.x,self.y))
-            self.list_value[num] = False
-        self.list_value[number] = True
+        # for num in range(len(self.list_value)):
+        #     if self.list_value[num]:self.list.append((self.x,self.y))
+        #     self.list_value[num] = False
+        # self.list_value[number] = True
         self.ACTIVE = True
 
     def grow(self):
@@ -44,9 +99,16 @@ class Snake_Head:
         self.add_segment()
 
     def add_segment(self):
-        seg = pygame.Surface((self.SIZE, self.SIZE))
-        seg.fill('blue')
+
+        self.count+=1
+        seg = Segment('blue', self.SIZE, self.SPEED,self.DISPLAY,self.x-25,self.y,self.count,self.list_value_old)
+        # seg = pygame.Surface((self.SIZE, self.SIZE))
+        # seg.fill('blue')
         self.tail.append(seg)
+
+    def add_checkpoint(self):
+        for seg in self.tail:
+            seg.checkpoints.append((self.x,self.y,self.list_value_old))
 
 
     def head_up(self):
@@ -71,10 +133,7 @@ class Snake_Head:
         self.DISPLAY.blit(snake_surface, snake_cords)
 
         for seg in self.tail:
-            coord = seg.get_rect(center=(self.x + 20 * self.count, self.y + 20 * self.count))
-            self.DISPLAY.blit(seg, coord)
-
-        # print(self.list)
+            seg.render()
 
 
     def seg_up(self):
@@ -140,6 +199,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.KEYDOWN:
+            # snake.add_checkpoint()
             if event.key == pygame.K_UP:
                 snake.set_value(1)
             elif event.key == pygame.K_DOWN:
