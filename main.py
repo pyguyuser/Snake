@@ -13,6 +13,7 @@ class Snake_Head:
         self.X = x
         self.Y = y
         self.DISPLAY = display
+        self.tail = [Segment("red",self.SIZE,self.DISPLAY,(self.x,self.y,self.list_value))]
 
     ACTIVE = False
     x,y = (300,200)
@@ -21,7 +22,7 @@ class Snake_Head:
     list_value = [False, False, False, False]
 
     # tail
-    tail = []
+
     corners = []
 
     def set_value(self,number):
@@ -29,64 +30,67 @@ class Snake_Head:
 
         if self.ACTIVE:
             self.corners.append((self.x, self.y))
-            for seg in self.tail:
-                seg.corners.append((self.x, self.y))
         self.ACTIVE =  True
 
 
-    #
+    #TODO:right move only
     def add_segment(self):
-        if len(self.tail)==0:
-            self.tail.append(Segment("red",self.SIZE,self.DISPLAY,(self.x,self.y,self.list_value,self.corners)))
-        else:
-            last_seg = self.tail[-1]
-            self.tail.append(Segment("red", self.SIZE, self.DISPLAY,(last_seg.x,last_seg.y,last_seg.vector,last_seg.corners)))
+
+        last_seg = self.tail[-1]
+        self.tail.append(Segment("red", self.SIZE, self.DISPLAY,(last_seg.x,last_seg.y,last_seg.vector)))
 
 
     def move_segments(self,seg1,seg2):
-        if len(self.corners) == 0:
+        if len(self.corners) == 0 or len(seg2.complete)==len(self.corners):
 
-            if seg1.corners[1]:seg2.y -= self.STEP
+            # LEFT
+            if seg1.vector[0]:seg2.x -= self.STEP
 
-            elif seg1.corners[2]:seg2.y += self.STEP
+            # UP
+            elif seg1.vector[1]:seg2.y -= self.STEP
 
-            elif seg1.corners[0]:seg2.x -= self.STEP
+            # DOWN
+            elif seg1.vector[2]:seg2.y += self.STEP
 
-            elif seg1.corners[3]:seg2.x += self.STEP
+            #RIGHT
+            elif seg1.vector[3]:seg2.x += self.STEP
 
         else:
 
-            if seg2.x < seg1.corners[0][0]:seg2.x += self.STEP
 
-            elif seg2.x >  seg1.corners[0][0]:seg2.x -= self.STEP
+            if seg2.x < self.corners[len(seg2.complete)][0]:seg2.x += self.STEP
 
-            elif seg2.y < seg1.corners[0][1]:seg2.y += self.STEP
+            elif seg2.x >  self.corners[len(seg2.complete)][0]:seg2.x -= self.STEP
 
-            elif seg2.y > seg1.corners[0][1]:seg2.y -= self.STEP
+            elif seg2.y < self.corners[len(seg2.complete)][1]:seg2.y += self.STEP
 
-        if (seg2.x,seg2.y) == seg1.corners[0]:
-            del seg1.corners[0]
+            elif seg2.y > self.corners[len(seg2.complete)][1]:seg2.y -= self.STEP
 
-
-
-    def head_up(self):
-        snake_surface = pygame.Surface((self.SIZE, self.SIZE))
-        snake_cords = snake_surface.get_rect(center=(self.x, self.y))
-
-        if self.list_value[0]:self.x -= self.STEP
-        elif self.list_value[1]:self.y -= self.STEP
-        elif self.list_value[2]:self.y += self.STEP
-        elif self.list_value[3]:self.x += self.STEP
-
-        snake_surface.fill('blue')
-        self.DISPLAY.blit(snake_surface, snake_cords)
-
-        if len(self.tail) > 2:
-            for i in range(0,len(self.tail)):
+            if (seg2.x,seg2.y) == self.corners[0]:
+                seg2.complete.append(self.corners[0])
 
 
-                self.move_segments(self.tail[i],self.tail[i+1])
-                self.tail[i].render()
+
+
+    def head(self):
+
+        if self.list_value[0]:self.tail[0].x -= self.STEP
+        elif self.list_value[1]:self.tail[0].y -= self.STEP
+        elif self.list_value[2]:self.tail[0].y += self.STEP
+        elif self.list_value[3]:self.tail[0].x += self.STEP
+
+        self.tail[0].render(self.list_value)
+
+
+
+    def body(self):
+        self.head()
+        for i in range(1,len(self.tail)-1):
+
+            self.move_segments(self.tail[i],self.tail[i+1])
+            self.tail[i].render()
+
+
 
 
 
@@ -95,8 +99,8 @@ class Segment():
         self.COLOR = color
         self.SIZE = size
         self.DISPLAY = display
-        self.x,self.y,self.vector,self.corners = direction
-
+        self.x,self.y,self.vector = direction
+    complete = []
     def render(self):
         surf = pygame.Surface((self.SIZE, self.SIZE))
         rect = surf.get_rect(center=(self.x-40,self.y))
@@ -104,7 +108,7 @@ class Segment():
         surf.fill(self.COLOR)
         self.DISPLAY.blit(surf, rect)
 
-    #
+    #TODO
     def update(self):
         pass
 
@@ -141,7 +145,7 @@ def main():
                     snake.add_segment()
 
         DISPLAY.fill('black')
-        snake.head_up()
+        snake.body()
 
         time.tick(60)
         pygame.display.update()
