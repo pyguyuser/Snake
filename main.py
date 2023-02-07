@@ -1,10 +1,5 @@
 import pygame,random
 
-
-
-
-
-
 class Snake_Head:
     def __init__(self, color, size,display,x,y):
         self.SIZE = size
@@ -13,7 +8,7 @@ class Snake_Head:
         self.X = x
         self.Y = y
         self.DISPLAY = display
-        self.tail = [Segment("red",self.SIZE,self.DISPLAY,(self.x,self.y,self.list_value))]
+
 
     ACTIVE = False
     x,y = (300,200)
@@ -22,8 +17,9 @@ class Snake_Head:
     list_value = [False, False, False, False]
 
     # tail
-
+    tail = []
     corners = []
+    count_complete = 0
 
     def set_value(self,number):
         self.list_value = [i==number for i in range(4)]
@@ -32,66 +28,89 @@ class Snake_Head:
             self.corners.append((self.x, self.y))
         self.ACTIVE =  True
 
+    def coords_gen(self,x,y,list):
+        if list[0]:x += 40
+        elif list[1]:y += 40
+        elif list[2]:y -= 40
+        elif list[3]:x -= 40
 
-    #TODO:right move only
+        return (x,y)
+
     def add_segment(self):
+        if len(self.tail) == 0:
+            self.tail.append(Segment("red", self.SIZE, self.DISPLAY, self.coords_gen(self.x,self.y,self.list_value)))
+        else:
+            last_seg = self.tail[-1]
+            self.tail.append(Segment("red", self.SIZE, self.DISPLAY,self.coords_gen(last_seg.x,last_seg.y,last_seg.vector)))
 
-        last_seg = self.tail[-1]
-        self.tail.append(Segment("red", self.SIZE, self.DISPLAY,(last_seg.x,last_seg.y,last_seg.vector)))
 
-
-    def move_segments(self,seg1,seg2):
-        if len(self.corners) == 0 or len(seg2.complete)==len(self.corners):
+    def move_segments(self,item):
+        if len(self.corners) == 0:
 
             # LEFT
-            if seg1.vector[0]:seg2.x -= self.STEP
+            if self.list_value[0]:
+                item.x -= self.STEP
+                item.vector = [True, False, False, False]
 
             # UP
-            elif seg1.vector[1]:seg2.y -= self.STEP
+            elif self.list_value[1]:
+                item.y -= self.STEP
+                item.vector = [False, True, False, False]
 
             # DOWN
-            elif seg1.vector[2]:seg2.y += self.STEP
+            elif self.list_value[2]:
+                item.y += self.STEP
+                item.vector = [False, False, True, False]
 
             #RIGHT
-            elif seg1.vector[3]:seg2.x += self.STEP
+            elif self.list_value[3]:
+                item.x += self.STEP
+                item.vector = [False, False, False, True]
 
         else:
+            if item.x < self.corners[0][0]:
+                item.x += self.STEP
+                item.vector = [False, False, False, True]
 
+            elif item.x >  self.corners[0][0]:
+                item.x -= self.STEP
+                item.vector = [True, False, False, False]
 
-            if seg2.x < self.corners[len(seg2.complete)][0]:seg2.x += self.STEP
+            elif item.y < self.corners[0][1]:
+                item.y += self.STEP
+                item.vector = [False, False, True, False]
 
-            elif seg2.x >  self.corners[len(seg2.complete)][0]:seg2.x -= self.STEP
+            elif item.y > self.corners[0][1]:
+                item.y -= self.STEP
+                item.vector = [False, True, False, False]
 
-            elif seg2.y < self.corners[len(seg2.complete)][1]:seg2.y += self.STEP
-
-            elif seg2.y > self.corners[len(seg2.complete)][1]:seg2.y -= self.STEP
-
-            if (seg2.x,seg2.y) == self.corners[0]:
-                seg2.complete.append(self.corners[0])
-
-
-
-
-    def head(self):
-
-        if self.list_value[0]:self.tail[0].x -= self.STEP
-        elif self.list_value[1]:self.tail[0].y -= self.STEP
-        elif self.list_value[2]:self.tail[0].y += self.STEP
-        elif self.list_value[3]:self.tail[0].x += self.STEP
-
-        self.tail[0].render(self.list_value)
-
+            else:
+                self.count_complete += 1
 
 
     def body(self):
-        self.head()
-        for i in range(1,len(self.tail)-1):
+        sur = pygame.Surface((self.SIZE,self.SIZE))
+        coords = sur.get_rect(center = (self.x,self.y))
 
-            self.move_segments(self.tail[i],self.tail[i+1])
-            self.tail[i].render()
+        if self.list_value[0]:
+            self.x -= self.STEP
+        elif self.list_value[1]:
+            self.y -= self.STEP
+        elif self.list_value[2]:
+            self.y += self.STEP
+        elif self.list_value[3]:
+            self.x += self.STEP
+
+        sur.fill(self.COLOR)
+        self.DISPLAY.blit(sur,coords)
 
 
-
+        for i in self.tail:
+            if self.count_complete == len(self.tail):
+                self.corners = []
+                self.count_complete = 0
+            self.move_segments(i)
+            i.render()
 
 
 class Segment():
@@ -99,23 +118,16 @@ class Segment():
         self.COLOR = color
         self.SIZE = size
         self.DISPLAY = display
-        self.x,self.y,self.vector = direction
-    complete = []
+        self.x,self.y = direction
+
+    vector = [False,False,False,False]
+
     def render(self):
         surf = pygame.Surface((self.SIZE, self.SIZE))
-        rect = surf.get_rect(center=(self.x-40,self.y))
+        rect = surf.get_rect(center=(self.x,self.y))
 
         surf.fill(self.COLOR)
         self.DISPLAY.blit(surf, rect)
-
-    #TODO
-    def update(self):
-        pass
-
-
-
-
-
 
 def main():
     X,Y = (700,700)
@@ -151,10 +163,6 @@ def main():
         pygame.display.update()
 
     pygame.quit()
-
-
-
-
 
 if __name__ == "__main__":
     main()
